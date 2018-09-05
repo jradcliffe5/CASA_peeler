@@ -29,8 +29,10 @@ def peel_CASA(vis,phasecenter,source_ID,solints,nterms,restart,refant):
 		nterms=nterms,interactive=True,imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
 		usemask='user',mask='S%s_pre_peel.mask' % source_ID,savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='briggs',robust=0.5)
 
-def uvsubber(vis, phasecenter, bychannel, byspw, nspw, nchan, source_ID):
-	if bychannel == True:
+def uvsubber(vis, phasecenter, bychannel, byspw, nspw, nchan, source_ID, nterms):
+	## There seems to be some issues here mainly due to the channelisation of the uvsubbing, the issue is currently unresolved and may need some time.
+	## Instead the best way is to make a frequency dependent model which can be inputted into the measurement set without the use of incremental==True
+	if (bychannel == True) and (byspw == True):
 		for i in range(nspw):
 			for j in range(nchan):
 				os.system('mkdir S%s_uvsub' % source_ID)
@@ -42,6 +44,14 @@ def uvsubber(vis, phasecenter, bychannel, byspw, nspw, nchan, source_ID):
 				else:
 					incremental = True
 				ft(vis=vis, spw='%d:%d' % (i,j), model='S%s_uvsub/spw%d_chan%d.model' % (source_ID,i,j),usescratch=True,incremental=incremental)
+	else:
+		tclean(vis=vis,imagename='S%s_uvsub',niter=1E4, deconvolver='mtmfs', nterms=nterms, interactive=True, imsize=[1024,1024], cell='0.2arcsec',\
+		mask='S%s_pre_peel.mask' % source_ID, savemodel='none', parallel=True, pblimit=0.001, phasecenter=phasecenter, stokes='RRLL')
+		models = []
+		for k in os.listdir('./'):
+			if k.startswith('S%s_uvsub.model'):
+				models = models + [k]
+		ft(vis=vis, model=models, nterms=nterms, usescratch=True)
 	uvsub(vis=vis)
 
 def restore_original_phases(index, msfile, final_sc_table, interp):
@@ -72,7 +82,7 @@ if do_sc == True:
 
 if do_uvsub == True:
 	uvsubber(vis=vis, phasecenter=phasecenters[source_ID-1],source_ID=source_ID,\
-	bychannel=True,byspw=True, nspw=2,nchan=7)
+	bychannel=False,byspw=False, nspw=2,nchan=7)
 
 if do_restore == True:
 	restore_original_phases(index=source_ID, msfile=vis, final_sc_table=['S1_sc4.p','S1_sc4.a5'], interp='linear')

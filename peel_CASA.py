@@ -72,8 +72,8 @@ phasecenters = ['J2000 12h34m52.259s +62d02m35.618s', 'J2000 12h35m38.044s +62d1
 nterms = 2
 refant='VA08'
 do_sc = False
-do_uvsub = False
-do_restore = True
+do_uvsub = True
+do_restore = False
 source_ID = 1
 
 if do_sc == True:
@@ -82,7 +82,7 @@ if do_sc == True:
 
 if do_uvsub == True:
 	uvsubber(vis=vis, phasecenter=phasecenters[source_ID-1],source_ID=source_ID,\
-	bychannel=False,byspw=False, nspw=2,nchan=7)
+	bychannel=False,byspw=False, nspw=2,nchan=7, nterms=2)
 
 if do_restore == True:
 	restore_original_phases(index=source_ID, msfile=vis, final_sc_table=['S1_sc4.p','S1_sc4.a5'], interp='linear')

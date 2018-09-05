@@ -5,7 +5,7 @@ def peel_CASA(vis,phasecenter,source_ID,solints,nterms,restart,refant):
 	if restart ==False:
 		tclean(vis=vis,imagename='S%s_pre_peel'%source_ID,niter=10000,deconvolver='mtmfs',\
 		nterms=nterms,interactive=True,imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
-		usemask='user',savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='briggs',robust=0.5)
+		usemask='user',savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='natural')
 		j = range(len(solints))
 	else:
 		sc_cy = []
@@ -31,7 +31,7 @@ def peel_CASA(vis,phasecenter,source_ID,solints,nterms,restart,refant):
 			mask = 'S%s_sc%s' % (source_ID,str(j[i]))
 		tclean(vis=vis,imagename='S%s_sc%s'%(source_ID,str(j[i]+1)),niter=10000,deconvolver='mtmfs',\
 		nterms=nterms,interactive=True,imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
-		usemask='user',mask=mask,savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='briggs',robust=0.5)
+		usemask='user',mask=mask,savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='natural')
 
 def uvsubber(vis, phasecenter, bychannel, byspw, nspw, nchan, source_ID, nterms):
 	## There seems to be some issues here mainly due to the channelisation of the uvsubbing, the issue is currently unresolved and may need some time.

@@ -28,7 +28,7 @@ def peel_CASA(vis,phasecenter,source_ID,solints,nterms,restart,refant):
 		if (j[i]+1) == 1:
 			mask = 'S%s_pre_peel.mask' % source_ID
 		else:
-			mask = 'S%s_sc%s' % (source_ID,str(j[i]))
+			mask = 'S%s_sc%s.mask' % (source_ID,str(j[i]))
 		tclean(vis=vis,imagename='S%s_sc%s'%(source_ID,str(j[i]+1)),niter=10000,deconvolver='mtmfs',\
 		nterms=nterms,interactive=True,imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
 		usemask='user',mask=mask,savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='natural')

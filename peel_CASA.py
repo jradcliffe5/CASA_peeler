@@ -25,9 +25,13 @@ def peel_CASA(vis,phasecenter,source_ID,solints,nterms,restart,refant):
 		minblperant=3, minsnr=1, calmode='p',parang=True)
 		#fill_flagged_soln('S%s_sc%s'%(source_ID,str(j[i]+1)))
 		applycal(vis=vis, gaintable='S%s_sc%s'%(source_ID,str(j[i]+1)), interp='linear', calwt=[False], parang=True, applymode='calonly')
+		if (j[i]+1) == 1:
+			mask = 'S%s_pre_peel.mask' % source_ID
+		else:
+			mask = 'S%s_sc%s' % (source_ID,str(j[i]))
 		tclean(vis=vis,imagename='S%s_sc%s'%(source_ID,str(j[i]+1)),niter=10000,deconvolver='mtmfs',\
 		nterms=nterms,interactive=True,imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
-		usemask='user',mask='S%s_pre_peel.mask' % source_ID,savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='briggs',robust=0.5)
+		usemask='user',mask=mask,savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='briggs',robust=0.5)
 
 def uvsubber(vis, phasecenter, bychannel, byspw, nspw, nchan, source_ID, nterms):
 	## There seems to be some issues here mainly due to the channelisation of the uvsubbing, the issue is currently unresolved and may need some time.
@@ -65,16 +69,16 @@ def restore_original_phases(index, msfile, final_sc_table, interp):
 	split(vis='temp1.ms',outputvis='%s_peel_S%d.ms' % (msfile.split('.ms')[0],index))
 	os.system('rm -r temp1.ms*')
 ### Inputs ####
-vis = 'JVLA1996_HDF.ms'
+vis = 'JVLA1996_HDF_peel_S1.ms'
 phasecenters = ['J2000 12h34m52.259s +62d02m35.618s', 'J2000 12h35m38.044s +62d19m32.097s',\
 				'J2000 12h35m55.121se +61d48m14.455s', 'J2000 12h40m13.617s +62d26m29.237s',\
 				'J2000 12h39m16.153s +62d00m17.036s', 'J2000 12h36m51.943s +61d57m00.372s']
 nterms = 2
 refant='VA08'
-do_sc = False
-do_uvsub = True
+do_sc = True
+do_uvsub = False
 do_restore = False
-source_ID = 1
+source_ID = 2
 
 if do_sc == True:
 	peel_CASA(vis=vis,phasecenter=phasecenters[source_ID-1],source_ID=source_ID,\

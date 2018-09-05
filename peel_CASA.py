@@ -45,11 +45,11 @@ def uvsubber(vis, phasecenter, bychannel, byspw, nspw, nchan, source_ID, nterms)
 					incremental = True
 				ft(vis=vis, spw='%d:%d' % (i,j), model='S%s_uvsub/spw%d_chan%d.model' % (source_ID,i,j),usescratch=True,incremental=incremental)
 	else:
-		tclean(vis=vis,imagename='S%s_uvsub',niter=10000, deconvolver='mtmfs', nterms=nterms, interactive=True, imsize=[1024,1024], cell='0.2arcsec',\
+		tclean(vis=vis,imagename='S%s_uvsub' % source_ID,niter=10000, deconvolver='mtmfs', nterms=nterms, interactive=True, imsize=[1024,1024], cell='0.2arcsec',\
 		mask='S%s_pre_peel.mask' % source_ID, savemodel='none', parallel=True, pblimit=0.001, phasecenter=phasecenter, stokes='RRLL')
 		models = []
 		for k in os.listdir('./'):
-			if k.startswith('S%s_uvsub.model'):
+			if k.startswith('S%s_uvsub.model' % source_ID):
 				models = models + [k]
 		ft(vis=vis, model=models, nterms=nterms, usescratch=True)
 	uvsub(vis=vis)

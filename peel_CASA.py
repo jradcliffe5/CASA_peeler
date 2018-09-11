@@ -69,24 +69,25 @@ def restore_original_phases(index, msfile, final_sc_table, interp):
 	split(vis='temp1.ms',outputvis='%s_peel_S%d.ms' % (msfile.split('.ms')[0],index))
 	os.system('rm -r temp1.ms*')
 ### Inputs ####
-vis = 'JVLA1996_HDF_peel_S1.ms'
+vis = 'JVLA1996_HDF_peel_S1_peel_S2_peel_S3_peel_S4_peel_S5.ms'
 phasecenters = ['J2000 12h34m52.259s +62d02m35.618s', 'J2000 12h35m38.044s +62d19m32.097s',\
-				'J2000 12h35m55.121se +61d48m14.455s', 'J2000 12h40m13.617s +62d26m29.237s',\
-				'J2000 12h39m16.153s +62d00m17.036s', 'J2000 12h36m51.943s +61d57m00.372s']
+				'J2000 12h35m55.121s +61d48m14.455s', 'J2000 12h40m13.617s +62d26m29.237s',\
+				'J2000 12h39m16.153s +62d00m17.036s','J2000 12h35m50.628s +62d27m58.484s',\
+				 'J2000 12h36m51.943s +61d57m00.372s']
 nterms = 2
 refant='VA08'
-do_sc = True
-do_uvsub = False
+do_sc = False
+do_uvsub = True
 do_restore = False
-source_ID = 2
+source_ID = 6
 
 if do_sc == True:
 	peel_CASA(vis=vis,phasecenter=phasecenters[source_ID-1],source_ID=source_ID,\
-	solints=['5min','3min','3min'],nterms=2,restart=False,refant=refant)
+	solints=['5min','5min'],nterms=2,restart=False,refant=refant)
 
 if do_uvsub == True:
 	uvsubber(vis=vis, phasecenter=phasecenters[source_ID-1],source_ID=source_ID,\
 	bychannel=False,byspw=False, nspw=2,nchan=7, nterms=2)
 
 if do_restore == True:
-	restore_original_phases(index=source_ID, msfile=vis, final_sc_table=['S1_sc4.p','S1_sc4.a5'], interp='linear')
+	restore_original_phases(index=source_ID, msfile=vis, final_sc_table=['S5_sc2'], interp='linear')

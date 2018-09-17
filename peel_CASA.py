@@ -3,9 +3,15 @@ import os,sys
 
 def peel_CASA(vis,phasecenter,source_ID,solints,nterms,restart,refant):
 	if restart ==False:
-		tclean(vis=vis,imagename='S%s_pre_peel'%source_ID,niter=10000,deconvolver='mtmfs',\
+		delmod(vis=vis,scr=True,otf=True)
+		if nterms > 1:
+			deconvolver = 'mtmfs'
+		else:
+			deconvolver = 'clarkstokes'
+		tclean(vis=vis,imagename='S%s_pre_peel'%source_ID,niter=10000,deconvolver=deconvolver,\
 		nterms=nterms,interactive=True,imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
-		usemask='user',savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='natural')
+		usemask='user',savemodel='none',parallel=True,pblimit=0.001,weighting='natural')
+		ft(vis=vis,model='S%s_pre_peel.model'%(source_ID),usescratch=True,incremental=False)
 		j = range(len(solints))
 	else:
 		sc_cy = []
@@ -29,27 +35,29 @@ def peel_CASA(vis,phasecenter,source_ID,solints,nterms,restart,refant):
 			mask = 'S%s_pre_peel.mask' % source_ID
 		else:
 			mask = 'S%s_sc%s.mask' % (source_ID,str(j[i]))
-		tclean(vis=vis,imagename='S%s_sc%s'%(source_ID,str(j[i]+1)),niter=10000,deconvolver='mtmfs',\
+		delmod(vis=vis,scr=True,otf=True)
+		tclean(vis=vis,imagename='S%s_sc%s'%(source_ID,str(j[i]+1)),niter=10000,deconvolver=deconvolver,\
 		nterms=nterms,interactive=True,imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
-		usemask='user',mask=mask,savemodel='modelcolumn',parallel=True,pblimit=0.001,weighting='natural')
-
+		usemask='user',mask=mask,savemodel='none',parallel=True,pblimit=0.001,weighting='natural')
+		ft(vis=vis,model='S%s_sc%s.model'%(source_ID,str(j[i]+1)),usescratch=True,incremental=False)
 def uvsubber(vis, phasecenter, bychannel, byspw, nspw, nchan, source_ID, nterms):
 	## There seems to be some issues here mainly due to the channelisation of the uvsubbing, the issue is currently unresolved and may need some time.
 	## Instead the best way is to make a frequency dependent model which can be inputted into the measurement set without the use of incremental==True
+	if nterms > 1:
+		deconvolver = 'mtmfs'
+	else:
+		deconvolver = 'clarkstokes'
+	delmod(vis=vis,scr=True,otf=True)
 	if (bychannel == True) and (byspw == True):
 		for i in range(nspw):
 			for j in range(nchan):
 				os.system('mkdir S%s_uvsub' % source_ID)
-				tclean(vis=vis,imagename='S%s_uvsub/spw%d_chan%d' % (source_ID,i,j),spw='%d:%d' % (i,j),niter=1000,deconvolver='clarkstokes',interactive=True,\
+				tclean(vis=vis,imagename='S%s_uvsub/spw%d_chan%d' % (source_ID,i,j),spw='%d:%d' % (i,j),niter=5000,deconvolver='clarkstokes',interactive=True,\
 				imsize=[1024,1024],cell='0.2arcsec',stokes='RRLL',phasecenter=phasecenter,\
 				usemask='user',mask='S%s_pre_peel.mask' % source_ID, savemodel='none',parallel=True,pblimit=0.001)
-				if (i == 0) and (j == 0):
-					incremental = False
-				else:
-					incremental = True
-				ft(vis=vis, spw='%d:%d' % (i,j), model='S%s_uvsub/spw%d_chan%d.model' % (source_ID,i,j),usescratch=True,incremental=incremental)
+				ft(vis=vis, spw='%d:%d' % (i,j), model='S%s_uvsub/spw%d_chan%d.model' % (source_ID,i,j),usescratch=True,incremental=False)
 	else:
-		tclean(vis=vis,imagename='S%s_uvsub' % source_ID,niter=10000, deconvolver='mtmfs', nterms=nterms, interactive=True, imsize=[1024,1024], cell='0.2arcsec',\
+		tclean(vis=vis,imagename='S%s_uvsub' % source_ID,niter=10000, deconvolver=deconvolver, nterms=nterms, interactive=True, imsize=[1024,1024], cell='0.2arcsec',\
 		mask='S%s_pre_peel.mask' % source_ID, savemodel='none', parallel=True, pblimit=0.001, phasecenter=phasecenter, stokes='RRLL')
 		models = []
 		for k in os.listdir('./'):
@@ -69,25 +77,25 @@ def restore_original_phases(index, msfile, final_sc_table, interp):
 	split(vis='temp1.ms',outputvis='%s_peel_S%d.ms' % (msfile.split('.ms')[0],index))
 	os.system('rm -r temp1.ms*')
 ### Inputs ####
-vis = 'JVLA1996_HDF_peel_S1_peel_S2_peel_S3_peel_S4_peel_S5.ms'
+vis = 'VLA1996_HDF_no_gaincurve_peel_S1_peel_S2_peel_S3_peel_S4_peel_S5.ms'
 phasecenters = ['J2000 12h34m52.259s +62d02m35.618s', 'J2000 12h35m38.044s +62d19m32.097s',\
 				'J2000 12h35m55.121s +61d48m14.455s', 'J2000 12h40m13.617s +62d26m29.237s',\
 				'J2000 12h39m16.153s +62d00m17.036s','J2000 12h35m50.628s +62d27m58.484s',\
 				 'J2000 12h36m51.943s +61d57m00.372s']
-nterms = 2
+nterms = 1
 refant='VA08'
 do_sc = False
-do_uvsub = True
+do_uvsub =True
 do_restore = False
 source_ID = 6
 
 if do_sc == True:
 	peel_CASA(vis=vis,phasecenter=phasecenters[source_ID-1],source_ID=source_ID,\
-	solints=['5min','5min'],nterms=2,restart=False,refant=refant)
+	solints=['5min','5min'],nterms=nterms,restart=False,refant=refant)
 
 if do_uvsub == True:
 	uvsubber(vis=vis, phasecenter=phasecenters[source_ID-1],source_ID=source_ID,\
-	bychannel=False,byspw=False, nspw=2,nchan=7, nterms=2)
+	bychannel=True,byspw=True, nspw=2,nchan=7, nterms=1)
 
 if do_restore == True:
-	restore_original_phases(index=source_ID, msfile=vis, final_sc_table=['S5_sc2'], interp='linear')
+	restore_original_phases(index=source_ID, msfile=vis, final_sc_table=['S4_sc2'], interp='linear')
